@@ -1,0 +1,377 @@
+
+<!-- 
+  FSWebServer - Example Index Page
+  Copyright (c) 2015 Hristo Gochkov. All rights reserved.
+  This file is part of the ESP8266WebServer library for Arduino environment.
+ 
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>ESP Monitor</title>
+  <script type="text/javascript" src="graphs.js"></script>
+  <script type="text/javascript">
+    var optDiff,motorTarget,motorPosition,wakeUpPeriod;
+    var reloadPeriod = 500;
+    var running = false;
+    
+
+    
+    function liveValues(){
+      var xh = new XMLHttpRequest();
+      xh.timeout = reloadPeriod;
+      xh.onreadystatechange = function(){
+        if (xh.readyState == 4){
+          if(xh.status == 200) {
+            var res = JSON.parse(xh.responseText);
+          
+            analogGraph.add(res.opticalValue);
+            document.getElementById("motorPosition").innerHTML = res.motorPosition;
+            document.getElementById("nowStr").innerHTML = res.nowStr;
+          } 
+          setTimeout(liveValues, reloadPeriod);
+        }
+      };
+      xh.open("GET", "/liveValues", true);
+      xh.send(null);
+    };
+    
+  
+    function onBodyLoad(){
+      var button;
+    
+      var equilibreButton = document.getElementById("equilibre-button");
+      equilibreButton.onclick = function(e){
+        var xh = new XMLHttpRequest();
+        xh.open("GET", "/equilibre", true);
+        xh.send(null);
+      }
+
+      var equilibreButton = document.getElementById("motorCheck-button");
+      equilibreButton.onclick = function(e){
+        var xh = new XMLHttpRequest();
+        xh.open("GET", "/motorCheck", true);
+        xh.send(null);
+      }
+      
+      var tareButton = document.getElementById("tare-button");
+      tareButton.onclick = function(e){
+        var xh = new XMLHttpRequest();
+        xh.open("GET", "/tare", true);
+        xh.send(null);
+      }
+     
+      
+      analogGraph = createGraph(document.getElementById("analog"), "Analog Input", 180, 100, 0, 1024, false, "cyan");
+
+      //loadValues();
+      
+        var xh = new XMLHttpRequest();
+        xh.open("GET", "/chipId.txt", false);
+        xh.send(null);      
+      document.getElementById("chipId").innerHTML = xh.responseText;
+      
+      loadSettings();  
+
+      sendingModeChange(document.getElementById("sendingMode"));
+      
+      liveValues();
+    }
+    
+    
+    function sync() {
+      var t = new Date();
+      
+      var epoch = Math.floor(t.getTime()/1000) - t.getTimezoneOffset() * 60;
+
+      var xh = new XMLHttpRequest();
+      xh.onreadystatechange = function(){
+        if (xh.readyState == 4){
+          //alert(xh.status);
+        }
+      };
+      xh.open("GET", "/timeset?epoch=" + epoch.toString(), true);
+      xh.send(null);      
+    }
+    
+    function sendingModeChange(list) {
+        document.getElementById("wifiHotspotOption").style.display = "none";
+        document.getElementById("sigfoxOption").style.display = "none";
+        document.getElementById("loraOption").style.display = "none";
+        document.getElementById("gsmGprsOption").style.display = "none";
+        document.getElementById("gsmSmsOption").style.display = "none";        
+        document.getElementById("wifiSlaveOption").style.display = "none";
+        
+        document.getElementById(list.value + "Option").style.display = "block";
+
+    }
+         
+    function wifiScan(button) {
+        var xh = new XMLHttpRequest();
+        
+          
+        xh.onreadystatechange = function(){
+          
+            if (xh.readyState == 4) {
+          
+            
+                button.value = "Wifi Scan";    
+                var res = JSON.parse(xh.responseText);
+            
+                var wifiList = res.wifi;  
+            
+                var sel = document.getElementById("wifiSlaveMaster");
+            
+    
+        
+                while (sel.firstChild) sel.removeChild(sel.firstChild);
+  
+     
+       
+                for(var i = 0; i < wifiList.length; i++) {
+                
+                    var opt = document.createElement("option");
+                    opt.innerHTML = wifiList[i];
+                    opt.value = wifiList[i];
+                    sel.appendChild(opt);
+                }
+            }
+        };
+        button.value = "Wifi Scan...";
+        xh.open("GET", "/wifiScan", true);
+        xh.send(null);
+    }
+    
+    function setWifi() {
+        var xh = new XMLHttpRequest();
+        var wifi = document.getElementById("wifiList").value;
+        xh.open("GET", "/wifiSet?ssid=" + wifi, true);
+        xh.send(null);
+    }
+    
+    
+    function sigfoxGetID() {
+        var xh = new XMLHttpRequest();
+
+        document.getElementById("sigfoxId").innerHTML = "";
+        xh.open("GET", "/sigfoxATCommand?command=AT%24I%3D10", false);
+        xh.send(null);
+        document.getElementById("sigfoxId").innerHTML += "AT$I=10 : " + xh.responseText + "<br>";
+        
+        xh.open("GET", "/sigfoxATCommand?command=AT%24I%3D11", false);
+        xh.send(null);
+        document.getElementById("sigfoxId").innerHTML += "AT$I=11 : " + xh.responseText + "<br>"; 
+    }
+    
+    
+    var settings = ["sendingMode",
+                    "wifiHotspotSSID",
+                    "wifiHotspotPassword",
+                    "wifiHotspotURL",
+                    "wifiSlaveMaster",
+                    "measurementFrequency"];
+                    
+                    
+    function saveSettings() {
+        var xh = new XMLHttpRequest();
+        var formData = new FormData();
+        var content, blob;
+        
+                    
+        for (var i=0; i < settings.length; i++) {
+            var setting = settings[i];
+            // objet JavaScript de type fichier
+            content = document.getElementById(setting).value; // the body of the new file...
+            blob = new Blob([content], { type: "text/xml"});
+            formData.append("file", blob, setting + ".txt");
+        }
+        xh.open("POST", "/edit", false);
+        xh.send(formData);        
+    }
+      
+    function loadSettings() {
+        var xh = new XMLHttpRequest();
+       
+                    
+        for (var i=0; i < settings.length; i++) {
+            var setting = settings[i];
+            // objet JavaScript de type fichier
+            xh.open("GET", "/" + setting + ".txt", false);
+            xh.send(null);        
+            document.getElementById(setting).value = xh.responseText;
+        }
+        
+    }
+    
+    function loadValues(){
+      var xh = new XMLHttpRequest();
+      xh.onreadystatechange = function(){
+        if (xh.readyState == 4){
+          if(xh.status == 200) {
+            var res = JSON.parse(xh.responseText);
+            
+            Object.keys(res).forEach(function(key,index) {
+              //alert(key);
+              var tmp = document.getElementById(key);
+              if ((typeof(tmp) == "object") && (tmp != null)) {
+                tmp.value = res[key];
+                tmp.innerHTML = res[key]; 
+              }
+            });
+            //document.getElementById("motorPosition").value = res.motorPosition;
+          };
+        }
+      };
+      xh.open("GET", "/all", true);
+      xh.send(null);
+    };        
+        
+  </script>
+  
+  <style>
+  .block {
+      display: block; 
+      width: 100%-10px;
+      padding: 5px; 
+      margin: 5px;  
+      border: 1px solid rgb(68, 68, 68); 
+      background-color: rgb(238, 238, 238);
+  }
+  </style>
+  
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<link rel="apple-touch-icon" href="icone57.png">
+	
+</head>
+<body id="index" style="margin:0; padding:0;" onload="onBodyLoad()">
+  <div class="block">
+    <img src="logo.png" /><br>
+  
+    Scale identifier : <span id="chipId"></span></h2>
+  
+    <br><a href="/update">firmware update</a>
+    <br><a href="/edit">file editor</a>
+    <br><a href="/debug">debug information</a>
+    
+  </div>
+
+  <div class="block">
+    <h4>Sending mode</h4><br>
+    <select id="sendingMode" onchange="sendingModeChange(this);">
+      <option value="wifiHotspot">Wifi via hotspot</option>
+      <option value="sigfox">Sigfox</option>
+      <option value="lora">Lora</option>
+      <option value="gsmGprs">GSM (data)</option>
+      <option value="gsmSms">GSM (sms)</option>
+      <option value="wifiSlave">Wifi via master scale</option>
+    </select>
+    
+
+    <div id="wifiHotspotOption" style="display:none">
+        <label>SSID:</label>
+        <input type="text" id="wifiHotspotSSID"><br>
+        
+        <label>Password:</label>
+        <input type="text" id="wifiHotspotPassword"><br>
+        
+        <label>URL:</label>
+        <input type="text" id="wifiHotspotURL"><br>
+    
+    </div>
+    
+    <div id="sigfoxOption" style="display:none">
+        <input type="button" value="Get ID/PAK" onclick="sigfoxGetID();"/><br>
+        <label id="sigfoxId"/>
+    </div>
+    
+    <div id="loraOption" style="display:none">
+        soon...
+    </div>    
+
+    <div id="gsmGprsOption" style="display:none">
+        soon...
+    </div>    
+    
+    <div id="gsmSmsOption" style="display:none">
+        soon...
+    </div>        
+    
+    <div id="wifiSlaveOption" style="display:none">
+      <input type="button" value="Wifi Scan" onclick="wifiScan(this);"/>
+        
+      
+      <br><select id="wifiSlaveMaster"></select>
+      
+      <br><input type="button" id="wifiSet-button" value="Set Wifi" onclick="setWifi();"/>
+      
+      <br><input type="button" id="WifiConnectToMaster-button" value="Register to wifi master"/>
+    </div>
+    
+    <br><input type="button" value="Save" onclick="saveSettings();"/>
+    
+  </div>
+  
+  <div class="block">
+    <h4>Time</h4><br>
+    
+    <br>Measurement frequency
+    <select id="measurementFrequency">
+      <option value=1>Every day at 12:00</option>
+      <option value=2>Twice a day (12:00/00:00)</option>
+      <option value=4>Every 6 hours</option>
+      <option value=8>Every 3 hours</option>
+      <option value=24>Every hour</option>
+      <option value=48>Every 1/2 hour</option>
+      <option value=1440>Every minute (debug purpose only!)</option>
+      
+    </select>
+    <input type="button" value="Save" onclick='saveSettings();
+            var xh = new XMLHttpRequest();
+            xh.open("GET", "/setRTC", false);
+            xh.send(null);   
+    '/>
+    
+        
+    <br><label id="nowStr"></label> 
+    <input type="button" value="Sync time with web browser" onclick="sync()"/>
+    
+    
+    
+  </div>
+  
+  <div class="block">
+    <h4>Mechanical</h4><br>
+    <br><input type="button" id="equilibre-button" value="Search for balance"/>    
+    <br><input type="button" id="tare-button" value="Tare"/>
+    <br><input type="button" id="motorCheck-button" value="Search for motor check"/>    
+    
+    <br><label>motorTarget:</label>
+    <input type="number" id="motorTarget"/><input type="button" onclick='
+        motorTarget = parseInt(document.getElementById("motorTarget").value);  
+        var xh = new XMLHttpRequest();
+        xh.open("GET", "/motorTarget?value=" + motorTarget, true);
+        xh.send(null);'
+        
+        value="Go"/>
+        
+    <br><label>motorPosition:</label></td><td><label id="motorPosition"></label>
+    
+    <div id="analog"></div>
+  </div>
+
+</body>
+
+
+</html>
