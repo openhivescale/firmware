@@ -9,7 +9,7 @@ void timeInit() {
   RTCReadTime();
   
   //Configuration NTP
-  if (((RTCReg[0x0F]) & 2) == 0) {
+  if ((((RTCReg[0x00]) & 2) == 0) && (((RTCReg[0x0F]) & 2)) == 0) { //AIE nor TAC configured... RTC has been reset.
     //debug("Configure NTP");
     //wifiStart();
     if (WiFi.status() == WL_CONNECTED) {
@@ -18,14 +18,13 @@ void timeInit() {
 
     debug("Reset");
     RTCReset();
-
-    debug("Configure timer");
-    //debug(wakeUpPeriod);
-    RTCConfigureTimer();
+    RTCConfigureBattery();
+    RTCSetAlarm();
+    RTCConfigureDisableCLKOUT();
   }
 
 
-  if (RTCReg[1] & 0b01000000) {
+  if (RTCReg[1] & 0b01001000) { // CTAF or AF
     wakeUpByRTCAlarm = true;
     wakeUpForConfig = false;
   } else { 
@@ -51,27 +50,50 @@ void RTCReset() {
   Wire.endTransmission();
 
   Wire.beginTransmission(0x68);
-  Wire.write(0x01);
-  Wire.write(0b00000010);
-  //Wire.write(0b10000000); //battery switch over standard, no battery monitor
-  Wire.write(0b11100000); //no battery switch over, no battery monitor
+  Wire.write(0x02); // Control 2
+  Wire.write(0b11100000); //battery switch-over function is disabled - only one power supply (VDD);
+                          //battery low detection function is disabled
   Wire.endTransmission();
 
   Wire.beginTransmission(0x68);
-  /*Wire.write(0x03);
-    Wire.write(0x00);
-    Wire.write(0x00);
-    Wire.write(0x00);*/
-  Wire.write(0x06);
+  Wire.write(0x03);
+  Wire.write(0x00);
+  Wire.write(0x00);
+  Wire.write(0x00);
+  //Wire.write(0x06);
   Wire.write(0x00);
   Wire.write(0x00);
   Wire.write(0x00);
   Wire.write(0x00);
   Wire.endTransmission();
+  
 }
+
+void RTCConfigureBattery() {
+  Wire.beginTransmission(0x68);
+  Wire.write(0x02); // Control 2
+  Wire.write(0b11100000); //battery switch-over function is disabled - only one power supply (VDD);
+                          //battery low detection function is disabled
+  Wire.endTransmission();
+
+}
+
+
+void RTCConfigureDisableCLKOUT() { 
+  Wire.beginTransmission(0x68);
+  Wire.write(0x0F);
+  Wire.write(0b00111000); //TAM : permanent interrupt, CLKOUT Disabled,  timer A disabled, timer B disabled
+  Wire.endTransmission();
+}
+
 
 void RTCConfigureTimer() {
 
+  Wire.beginTransmission(0x68);
+  Wire.write(0x01);
+  Wire.write(0b00000010); //CTAIE countdown timer A interrupt is enabled
+  Wire.endTransmission();
+  
   Wire.beginTransmission(0x68);
   Wire.write(0x0F);
   Wire.write(0b00111010); //TAM : permanent interrupt, CLKOUT Disabled,  timer A countdown, timer B disabled
@@ -97,6 +119,53 @@ void RTCConfigureTimer() {
   //Wire.write(60); //T_A
   Wire.endTransmission();
 }
+
+void RTCSetAlarm() {
+  uint8_t alarmMinute, alarmHour;
+  uint16_t timeInMinute, alarmInMinute;
+  uint16_t measurementFrequency, wakeUpPeriod;
+
+  if (SPIFFS.exists("/measurementFrequency.txt")) {
+    int measurementFrequency = readSetting("measurementFrequency").toInt();
+    wakeUpPeriod = 1440 / measurementFrequency;
+  } else {
+    wakeUpPeriod = 60;
+  }
+
+  timeInMinute = hour() * 60 + minute();
+  if (wakeUpPeriod == 1440) { //once a day => at noon and not midnight
+    alarmInMinute = 720; //12:00
+  } else {
+    alarmInMinute = (timeInMinute - (timeInMinute % wakeUpPeriod) + wakeUpPeriod) % 1440; //%1440 : 24:00 => 00:00
+  }
+  alarmHour = alarmInMinute / 60;
+  alarmMinute = alarmInMinute % 60;
+  
+  debug("wakeUpPeriod:" + String(wakeUpPeriod));
+  debug("timeInMinute:" + String(timeInMinute));
+  debug("alarmInMinute:" + String(alarmInMinute));
+  debug("alarmHour:" + String(alarmHour));
+  debug("alarmMinute:" + String(alarmMinute));
+  
+  
+
+
+  Wire.beginTransmission(0x68);
+  Wire.write(0x00);
+  Wire.write(0b00000010); //AIE alarm interrupt enabled = 1
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(0x68);
+  Wire.write(0x0A);
+
+  Wire.write(BCD(alarmMinute));
+  Wire.write(BCD(alarmHour));
+
+  Wire.endTransmission();
+  
+}
+
+
 
 void RTCSetTime() {
 
@@ -127,7 +196,7 @@ void RTCReadTime() {
 
 
 
-void RTCClearInterrupt() {
+void RTCClearTimerInterrupt() {
   delay(100); //for Serial to finish flush
 
   //WiFi.forceSleepBegin();
@@ -139,6 +208,15 @@ void RTCClearInterrupt() {
   Wire.endTransmission();
 
   //ESP.deepSleep(10000000, WAKE_RF_DISABLED);
+}
+
+void RTCClearAlarmInterrupt() {
+  
+  Wire.beginTransmission(0x68);
+  Wire.write(0x01);
+  Wire.write(0b01110000); //clear AF
+  Wire.endTransmission();
+
 }
 
 void RTCReadReg() {
@@ -158,14 +236,16 @@ void RTCReadReg() {
       }*/
   }
 
-  if (debugRTCReg) {
-    String dbg = "RTC register : ";
-    for (int i = 0; i < 20; i++) {
-      if (RTCReg[i] < 0x10) dbg = dbg + "0";
-      dbg = dbg + String(RTCReg[i], HEX) + " ";        // print the character
-    }
-    debug(dbg);
+
+}
+
+void debugRTCReg() {
+  String dbg = "RTC register : ";
+  for (int i = 0; i < 20; i++) {
+    if (RTCReg[i] < 0x10) dbg = dbg + "0";
+    dbg = dbg + String(RTCReg[i], HEX) + " ";        // print the character
   }
+  debug(dbg);
 }
 
 

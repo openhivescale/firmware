@@ -19,7 +19,7 @@ void debug(String text, bool sameLine) {
 
   if (!sameLine) {
     //Serial.println("");
-    debugText = debugText + "\\n";
+    debugText = debugText + "\n";
   }
 
   if (debugText.length() > 1000) {

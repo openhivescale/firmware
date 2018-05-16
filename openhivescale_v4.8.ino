@@ -214,8 +214,8 @@ void setup(void) {
     
 
     delay(500);
-    
-    RTCClearInterrupt(); // => switch OFF
+    RTCSetAlarm();
+    RTCClearAlarmInterrupt(); // => switch OFF
   }
 
 
@@ -289,7 +289,7 @@ void loop(void) {
   }
 
 
-  ArduinoOTA.handle();
+  //ArduinoOTA.handle();
 
   server.handleClient();
 
@@ -310,9 +310,10 @@ void loop(void) {
 
 
     RTCReadReg();
-    if (RTCReg[1] & 0b01000000) {
+    if (RTCReg[1] & 0b01001000) {
       debug("timer interrupt");
-      RTCClearInterrupt(); // => switch OFF
+      RTCSetAlarm();
+      RTCClearAlarmInterrupt(); // => switch OFF
     }
 
     //debug("Wifi status : " + String(WiFi.status()));

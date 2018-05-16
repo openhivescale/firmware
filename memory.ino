@@ -13,7 +13,7 @@ void memoryInit() {
   while (dir.next()) {
     String fileName = dir.fileName();
     size_t fileSize = dir.fileSize();
-    debug(String(fileName.c_str()) + " : " + String(formatBytes(fileSize).c_str()));
+    //debug(String(fileName.c_str()) + " : " + String(formatBytes(fileSize).c_str()));
   }
 
 

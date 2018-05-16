@@ -12,8 +12,6 @@
 
 byte RTCReg[20];
 
-#define debugRTCReg 0
-
 
 //IPAddress timeServerIP(192,168,4,2);
 const char* ntpServerName = "0.pool.ntp.org";
@@ -35,12 +33,14 @@ void RTCReset();
 void RTCConfigureTimer();
 void RTCSetTime();
 void RTCReadTime();
-void RTCClearInterrupt() ;
+void RTCClearTimerInterrupt();
+void RTCClearAlarmInterrupt();
 void RTCReadReg();
 unsigned long sendNTPpacket(IPAddress& address, WiFiUDP udp);
 void GetNTPConfigureRTC(IPAddress& address);
 void ntpServerInit();
 void ntpServerProcess();
+void debugRTCReg();
 
 String nowStr();
 

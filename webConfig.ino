@@ -2,13 +2,13 @@
 
 void webConfigInit() {
   // Port defaults to 8266
-  ArduinoOTA.setPort(8266);
+  //ArduinoOTA.setPort(8266);
   // Hostname defaults to esp8266-[ChipID]
-  ArduinoOTA.setHostname(host);
+  //ArduinoOTA.setHostname(host);
   // No authentication by default
-  ArduinoOTA.setPassword((const char *)"123");
+  //ArduinoOTA.setPassword((const char *)"123");
 
-  ArduinoOTA.begin();
+  //ArduinoOTA.begin();
   httpUpdater.setup(&server);
 
 
@@ -115,6 +115,16 @@ void initWebServer() {
     rechercheMotorCheck();
   });
 
+  server.on("/RTCSetAlarm", HTTP_GET, []() {
+    server.send(200, "text/plain", "OK");
+    RTCSetAlarm();
+  });
+
+  server.on("/debugRTCReg", HTTP_GET, []() {
+    server.send(200, "text/plain", "OK");
+    debugRTCReg();
+  });
+    
   server.on("/tare", HTTP_GET, []() {
     server.send(200, "text/plain", "OK");
     motorPosition = 0;
@@ -181,9 +191,9 @@ void initWebServer() {
   });
 
 
-  server.on("/setRTC", HTTP_GET, []() {
+  server.on("/RTCSetAlarm", HTTP_GET, []() {
     server.send(200, "text/plain", "OK");
-    RTCConfigureTimer();
+    RTCSetAlarm();
   });
 
 
