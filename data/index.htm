@@ -132,20 +132,18 @@
             
                 var wifiList = res.wifi;  
             
-                var sel = document.getElementById("wifiSlaveMaster");
+                var selArr = [document.getElementById("wifiSlaveSSID"),document.getElementById("wifiHotspotSSID")];
             
-    
-        
-                while (sel.firstChild) sel.removeChild(sel.firstChild);
-  
-     
-       
-                for(var i = 0; i < wifiList.length; i++) {
-                
-                    var opt = document.createElement("option");
-                    opt.innerHTML = wifiList[i];
-                    opt.value = wifiList[i];
-                    sel.appendChild(opt);
+                for (var s=0; s<selArr.length;s++) {
+                    sel = selArr[s];
+                    while (sel.firstChild) sel.removeChild(sel.firstChild);
+                    for(var i = 0; i < wifiList.length; i++) {
+                    
+                        var opt = document.createElement("option");
+                        opt.innerHTML = wifiList[i];
+                        opt.value = wifiList[i];
+                        sel.appendChild(opt);
+                    }
                 }
             }
         };
@@ -154,10 +152,11 @@
         xh.send(null);
     }
     
-    function setWifi() {
+    function wifiSlaveRegister() {
+        saveSettings();
         var xh = new XMLHttpRequest();
-        var wifi = document.getElementById("wifiList").value;
-        xh.open("GET", "/wifiSet?ssid=" + wifi, true);
+        var wifi = document.getElementById("wifiSlaveSSID").value;
+        xh.open("GET", "/wifiSlaveConfig?ssid=" + wifi, true);
         xh.send(null);
     }
     
@@ -180,7 +179,7 @@
                     "wifiHotspotSSID",
                     "wifiHotspotPassword",
                     "wifiHotspotURL",
-                    "wifiSlaveMaster",
+                    "wifiSlaveSSID",
                     "measurementFrequency"];
                     
                     
@@ -209,8 +208,19 @@
             var setting = settings[i];
             // objet JavaScript de type fichier
             xh.open("GET", "/" + setting + ".txt", false);
-            xh.send(null);        
-            document.getElementById(setting).value = xh.responseText;
+            xh.send(null); 
+            var val = xh.responseText;
+            var obj = document.getElementById(setting);
+            obj.value = val;
+            
+            if (obj.type == "select-one" && obj.value != val) {
+                var opt = document.createElement("option");
+                opt.innerHTML = val;
+                opt.value = val;
+                obj.appendChild(opt);
+            } 
+            
+            
         }
         
     }
@@ -278,11 +288,12 @@
       <option value="wifiSlave">Wifi via master scale</option>
     </select>
     
-
+      
     <div id="wifiHotspotOption" style="display:none">
         <label>SSID:</label>
-        <input type="text" id="wifiHotspotSSID"><br>
-        
+        <input type="button" value="Wifi Scan" onclick="wifiScan(this);"/>
+        <select id="wifiHotspotSSID"></select><br>
+              
         <label>Password:</label>
         <input type="text" id="wifiHotspotPassword"><br>
         
@@ -309,14 +320,11 @@
     </div>        
     
     <div id="wifiSlaveOption" style="display:none">
+      <label>Master SSID:</label>
       <input type="button" value="Wifi Scan" onclick="wifiScan(this);"/>
-        
+      <select id="wifiSlaveSSID"></select><br>
       
-      <br><select id="wifiSlaveMaster"></select>
-      
-      <br><input type="button" id="wifiSet-button" value="Set Wifi" onclick="setWifi();"/>
-      
-      <br><input type="button" id="WifiConnectToMaster-button" value="Register to wifi master"/>
+      <input type="button" id="wifiSet-button" value="Register to wifi master" onclick="wifiSlaveRegister();"/>      
     </div>
     
     <br><input type="button" value="Save" onclick="saveSettings();"/>

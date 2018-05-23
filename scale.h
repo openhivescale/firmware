@@ -22,7 +22,7 @@ const int opticalLedPin = 0;
 //optical sensor
 int opticalValue, /*v0, v1,*/ optDiff, diffMin, diffMinBuf, diffMax, diffMaxBuf, diffPrev, diffSens, diffLowPass, diffCC;
 long diffLastMin, diffLastMax;
-long pesee;
+long weightRaw;
 
 //stepper motor
 

@@ -1,5 +1,30 @@
 #include "wifi.h"
 
+void wifiStartAP() {
+
+
+  #ifdef serialDebug
+    Serial.println("start soft wifi");
+  #endif
+
+
+  WiFi.mode(WIFI_AP);
+  
+  sprintf(localAPssid, "openhivescale_%d", ESP.getChipId());
+
+  WiFi.softAP(localAPssid);
+
+  IPAddress myIP = WiFi.softAPIP();
+
+  #ifdef serialDebug
+    Serial.println("AP IP address: ");
+    Serial.println(myIP);
+  #endif
+
+  debug("AP IP address: ");
+  debug(myIP);
+  
+}
 
 void wifiStart() {
   unsigned long wifiStart;

@@ -2,7 +2,7 @@
 
 
 void timeInit() {
-  Wire.setClock(100);
+  Wire.setClock(1000);
   Wire.begin(RTCsda, RTCscl);
 
   RTCReadReg();
@@ -184,8 +184,19 @@ void RTCSetTime() {
 }
 
 
-void RTCReadTime() {
+void RTCWaitForSecChange() {
+  uint8_t prevSec, sec;
   RTCReadReg();
+  prevSec = RTCReg[3] & 0b01111111;
+  while (prevSec == (RTCReg[3] & 0b01111111)) {
+    delay(10);
+    RTCReadReg();
+  }
+}
+
+void RTCReadTime() {
+  RTCWaitForSecChange();
+  
   setTime(bcd2int(RTCReg[5] & 0b00111111),
           bcd2int(RTCReg[4] & 0b01111111),
           bcd2int(RTCReg[3] & 0b01111111),
@@ -322,7 +333,7 @@ void GetNTPConfigureRTC(IPAddress& timeServerIP) {
 
   while ((!cb) && (retry++ < 5)) {
     sendNTPpacket(timeServerIP, udpNtpClient);
-    delay(500);
+    delay(1000);
     cb = udpNtpClient.parsePacket();
 
     logfile = SPIFFS.open("/ntp.txt", "a");
@@ -335,50 +346,28 @@ void GetNTPConfigureRTC(IPAddress& timeServerIP) {
   logfile.print("packet received, length=");
   logfile.println(cb);
 
-
-  // We've received a packet, read the data from it
-  udpNtpClient.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-
-  //the timestamp starts at byte 40 of the received packet and is four bytes,
-  // or two words, long. First, esxtract the two words:
-
-  unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-  unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-  // combine the four bytes (two words) into a long integer
-  // this is NTP time (seconds since Jan 1 1900):
-  unsigned long secsSince1900 = highWord << 16 | lowWord;
-
-
-
-
-  logfile.print("Seconds since Jan 1 1900 = ");
-  logfile.println(secsSince1900);
-  logfile.close();
-  setTime(secsSince1900 - 2208988800);
-
-  RTCSetTime();
-
-  /*int h, m, s;
-
-    h = (secsSince1900  % 86400L) / 3600;
-    m = (secsSince1900  % 3600) / 60;
-    s = secsSince1900 % 60;
-
-    debug("NTP time : ", true);
-    debug(h, true);
-    debug(":", true);
-    debug(m, true);
-    debug(":", true);
-    debug(s, true);
-    debug("");
-
-
-    Wire.beginTransmission(0x68);
-    Wire.write(0x03);
-    Wire.write(BCD(s));
-    Wire.write(BCD(m));
-    Wire.write(BCD(h));
-    Wire.endTransmission();*/
+  if (cb) {
+    // We've received a packet, read the data from it
+    udpNtpClient.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
+  
+    //the timestamp starts at byte 40 of the received packet and is four bytes,
+    // or two words, long. First, esxtract the two words:
+  
+    unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+    unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+    // combine the four bytes (two words) into a long integer
+    // this is NTP time (seconds since Jan 1 1900):
+    unsigned long secsSince1900 = highWord << 16 | lowWord;
+ 
+  
+    logfile.print("Seconds since Jan 1 1900 = ");
+    logfile.println(secsSince1900);
+    logfile.close();
+    setTime(secsSince1900 - 2208988800);
+  
+    RTCSetTime();
+    RTCSetAlarm();
+  }
 
 
 }
@@ -419,7 +408,8 @@ void ntpServerProcess() {
     packetBuffer[13] = 0xC;
     packetBuffer[14] = 0;
 
-
+    RTCReadTime();
+    
     unsigned long timestamp = now() + 2208988800;
     unsigned long tempval;
 

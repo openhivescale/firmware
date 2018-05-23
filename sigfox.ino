@@ -93,23 +93,41 @@ String sigfoxSend() {
     sigfoxGetAnswer(1000, logfile);
 
 
-    String msgPesee = "0000" + String((unsigned long)pesee, HEX);
+    String msgPesee = "0000" + String((unsigned long)weightRaw, HEX);
     String msgTemp = "00" + String((unsigned byte)temp, HEX);
     String msg = msgPesee.substring(msgPesee.length() - 4, msgPesee.length()) + msgTemp.substring(msgTemp.length() - 2, msgTemp.length());
 
-    //sigfoxSendCommand("AT$SS=" + msg, logfile);
-    sigfoxSendCommand("AT$SF=" + msg, logfile);
-    result = sigfoxGetAnswer(10000, logfile);
+    for (int i=0; i<slaveList.num && i<4;i++) {
+      if (slaveList.received[i])
+        msgPesee = "0000" + String((unsigned long)slaveList.weightRaw[i], HEX);
+      else
+        msgPesee = "0000";
+        
+      msg = msg + msgPesee.substring(msgPesee.length() - 4, msgPesee.length());
+    }
 
+    /*if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947) {
+      logfile.println("");
+      logfile.println("Simulation");
+      logfile.println(nowStr());
+      logfile.println(msg);
+    } else {*/
+      
+      //sigfoxSendCommand("AT$SS=" + msg, logfile);
+      sigfoxSendCommand("AT$SF=" + msg, logfile);
+      result = sigfoxGetAnswer(10000, logfile);
     /*sigfoxSendCommand("ATI28", logfile);
       result = result + "_ATI28_" + sigfoxGetAnswer(1000, logfile);*/
-    sigfoxSendCommand("AT$V?", logfile);
-    result = result + "_AT$V?_" + sigfoxGetAnswer(1000, logfile);
+      sigfoxSendCommand("AT$V?", logfile);
+      result = result + "_AT$V?_" + sigfoxGetAnswer(1000, logfile);
+  
+      sigfoxGetAnswer(100, logfile);
+      sigfoxGetAnswer(100, logfile);
+      sigfoxGetAnswer(100, logfile);
+      sigfoxGetAnswer(100, logfile);      
+    //}
 
-    sigfoxGetAnswer(100, logfile);
-    sigfoxGetAnswer(100, logfile);
-    sigfoxGetAnswer(100, logfile);
-    sigfoxGetAnswer(100, logfile);
+
   }
 
   logfile.close();

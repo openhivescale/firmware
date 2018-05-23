@@ -3,7 +3,7 @@
 void GsmHttpSend() {
   // URL, path & port (for example: arduino.cc)
   const char server[] = "www.pierrebeck.fr";
-  String resource = "/dumbpost.php?text=" + String(ESP.getChipId()) + "_" + String(pesee);
+  String resource = "/dumbpost.php?text=" + String(ESP.getChipId()) + "_" + String(weightRaw);
   const int port = 80; // port 80 is the default for HTTP
   // Your GPRS credentials
   // Leave empty, if missing user or pass

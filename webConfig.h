@@ -4,10 +4,13 @@
 #include "global.h"
 #include "memory.h"
 
+
 #include <ESP8266WebServer.h>
-//#include <ESP8266HTTPClient.h>
+#include <ESP8266HTTPClient.h>
 //#include <ArduinoOTA.h>
 #include <ESP8266HTTPUpdateServer.h>
+//#include <ESP8266mDNS.h>
+#include <ESP8266Ping.h>
 
 ESP8266HTTPUpdateServer httpUpdater;
 ESP8266WebServer server(80);

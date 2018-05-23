@@ -1,5 +1,6 @@
 #include "webConfig.h"
 
+
 void webConfigInit() {
   // Port defaults to 8266
   //ArduinoOTA.setPort(8266);
@@ -12,10 +13,10 @@ void webConfigInit() {
   httpUpdater.setup(&server);
 
 
-  MDNS.begin(host);
-  debug("Open http://", true);
+  //MDNS.begin(host);
+  /*debug("Open http://", true);
   debug(host, true);
-  debug(".local/edit to see the file browser");
+  debug(".local/edit to see the file browser");*/
 
 
   initWebServer();
@@ -177,19 +178,22 @@ void initWebServer() {
   });
 
 
-  server.on("/GetNTPConfigureRTC", HTTP_GET, []() {
-    server.send(200, "text/plain", "OK");
-    IPAddress apclient(192, 168, 4, 2);
-    GetNTPConfigureRTC(apclient);
-  });
+  server.on("/wifiScan", HTTP_GET, []() {
+    String htmlOut = "{\"wifi\":[";
 
-  
-  server.on("/NTP41", HTTP_GET, []() {
-    server.send(200, "text/plain", "OK");
-    IPAddress apclient(192, 168, 4, 1);
-    GetNTPConfigureRTC(apclient);
-  });
+    WiFi.scanDelete();
+    delay(100);
 
+    int numScan = WiFi.scanNetworks(true);
+    while ((numScan = WiFi.scanComplete()) < 0) delay(100);
+
+    for (int i = 0; i < numScan; i++) htmlOut = htmlOut + "\"" + WiFi.SSID(i) + "\",";
+
+    htmlOut = htmlOut.substring(0, htmlOut.length() - 1) + "]}";
+
+    server.send(200, "text/plain", htmlOut);
+
+  });
 
   server.on("/RTCSetAlarm", HTTP_GET, []() {
     server.send(200, "text/plain", "OK");
@@ -197,188 +201,197 @@ void initWebServer() {
   });
 
 
+  server.on("/wifiSlaveConfig", HTTP_GET, []() {
+    File confFile;
+    char masterSSID[50];
+    unsigned long timeOutStart;
+    server.arg(0).toCharArray(masterSSID,50);
+  
+    /*confFile = SPIFFS.open("/wifiSlaveSSID.txt", "w");
+    confFile.println(masterSSID);
+    confFile.close();*/
 
-  server.on("/wifiScan", HTTP_GET, []() {
-    String htmlOut = "{\"wifi\":[";
-
-    File logfile = SPIFFS.open("/wifiScan.txt", "a");
-    logfile.println("wifiScan call");
-    logfile.println(nowStr());
-
-    WiFi.scanDelete();
-    //WiFi.mode(WIFI_STA);
-    //delay(100);
-    //WiFi.disconnect();
+    server.send(200, "text/plain", "OK");
     delay(100);
 
-    int numScan = WiFi.scanNetworks(true);
-    debug(numScan);
-    while ((numScan = WiFi.scanComplete()) < 0) {
-      delay(100);
-    }
-    debug(numScan);
 
 
-
-    for (int i = 0; i < numScan; i++)
-    {
-      logfile.println(WiFi.SSID(i));
-      debug(WiFi.SSID(i));
-      htmlOut = htmlOut + "\"" + WiFi.SSID(i) + "\",";
-    }
-
-
-    htmlOut = htmlOut.substring(0, htmlOut.length() - 1) + "]}";
-
-    //WiFi.mode(WIFI_AP_STA);
-    //delay(100);
-
-    //WiFi.softAP(ssid);
-
-    logfile.close();
-    server.send(200, "text/plain", htmlOut);
-
-  });
-
-  server.on("/wifiSet", HTTP_GET, []() {
-    File confFile = SPIFFS.open("/wifiMaster.txt", "w");
-    confFile.println(server.arg(0));
-    confFile.close();
-
-    server.send(200, "text/plain", "OK");
-
-  });
-
-
-  server.on("/wifiNTP", HTTP_GET, []() {
-    File confFile = SPIFFS.open("/wifiMaster.txt", "r");
-
-    char ssid[50];
-    String ssidStr = confFile.readStringUntil('\n');
-    ssidStr = ssidStr.substring(0,ssidStr.length() - 1);
-    ssidStr.toCharArray(ssid, 50);
-
-    
-    
-    confFile.close();
-
-    File logfile = SPIFFS.open("/wifiNTP.txt", "a");
-    logfile.println("wifiNTP call");
-    logfile.println(ssid);
+    File logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+    logfile.println("wifiSlaveConfig call");
+    logfile.println(masterSSID);
+    logfile.println(WiFi.localIP());
     logfile.println(nowStr());
-    logfile.close();
-
-
+    
     WiFi.mode(WIFI_STA);
     delay(1000);
-    WiFi.disconnect();
-    delay(1000);
-    WiFi.begin(ssid);
-
-
-    logfile = SPIFFS.open("/wifiNTP.txt", "a");
-    logfile.println("after begin");
-    logfile.println(nowStr());
-    logfile.close();
     
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      logfile = SPIFFS.open("/wifiNTP.txt", "a");
-      logfile.println(".");
-      logfile.println(nowStr());
-      logfile.close();
-    }
-
-    
-    logfile = SPIFFS.open("/wifiNTP.txt", "a");
-    logfile.println("connected");
-    logfile.println(WiFi.localIP());
-    logfile.close();
-
-
-    IPAddress ap(192, 168, 4, 1);
-
-    GetNTPConfigureRTC(ap);
-
-    WiFi.mode(WIFI_AP_STA);
-    
-    server.send(200, "text/plain", "OK");
-
-  });
-
-
-
-  server.on("/WifiConnectToMaster", HTTP_GET, []() {
-    server.send(200, "text/plain", "OK");
-    
-    File confFile = SPIFFS.open("/wifiMaster.txt", "r");
-
-
-    char ssid[50];
-    String ssidStr = confFile.readStringUntil('\n');
-    ssidStr = ssidStr.substring(0,ssidStr.length() - 1);
-    ssidStr.toCharArray(ssid, 50);
-
-    
-    confFile.close();
-
-    File logfile = SPIFFS.open("/wifiNTP.txt", "a");
-    logfile.println("wifiNTP call");
-    logfile.println(ssid);
-    logfile.println(nowStr());
-    logfile.close();
-
-    
+        
     WiFi.disconnect();
     //delay(1000);
-    logfile.print("disconnect 1");
+    logfile.println("disconnect 1");
+    logfile.println(WiFi.localIP());
     logfile.println(nowStr());
     logfile.close();
 
-    
 
-    /*WiFi.mode(WIFI_STA);
-
-    logfile.print("wifiMode STA ");
-    logfile.println(nowStr());
-    logfile.close();*/
-    
-    /*delay(1000);
-    WiFi.disconnect();
-
-    logfile.print("disconnect ");
-    logfile.println(nowStr());
-    logfile.close();*/
 
     delay(1000);
-    WiFi.begin(ssid);
+    WiFi.begin(masterSSID);
 
 
-    logfile = SPIFFS.open("/wifiNTP.txt", "a");
+    logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
     logfile.println("after begin");
+    logfile.println(WiFi.localIP());
     logfile.println(nowStr());
     logfile.close();
+
+    logfile.print(nowStr());
+    timeOutStart = millis();
     
-    while (WiFi.status() != WL_CONNECTED) {
+    while ((WiFi.status() != WL_CONNECTED) && ((millis() - timeOutStart) < 10000)) {
       delay(500);
-      logfile = SPIFFS.open("/wifiNTP.txt", "a");
-      logfile.println(".");
-      logfile.println(nowStr());
+      logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+      logfile.print(WiFi.status());
+      logfile.close();
+    }
+    logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+    logfile.println("");
+    logfile.println(nowStr());
+    logfile.println(WiFi.localIP());
+    logfile.close();    
+
+    if (WiFi.status() == WL_CONNECTED) {
+      logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+      logfile.println("connected");
+      logfile.println(WiFi.localIP());
+      logfile.close();
+  
+
+      const char* remote_host = "192.168.4.1";
+      debug("pinging .... " + String(remote_host));
+    
+      if(Ping.ping(remote_host)) {
+        debug("Success!!");
+      } else {
+        debug("Error :(");
+      }
+
+  
+      HTTPClient http;
+      String URL = "http://192.168.4.1/wifiSlaveRegister?chipId=" + String(ESP.getChipId());
+          
+      logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+      logfile.println(URL);
+      logfile.close();
+
+      int retryCount = 0;
+      int okCnt = 0;
+      int ret;
+      while (okCnt < 1 && retryCount < 2) {
+        logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+
+        //http.begin(URL)
+        logfile.println(http.begin("192.168.4.1",80,"/wifiSlaveRegister?chipId=" + String(ESP.getChipId())));
+        
+        ret = http.GET();
+        
+        logfile.println(ret);
+        logfile.close();
+
+        if (ret == 200) {
+          okCnt++;
+          confFile = SPIFFS.open("/measurementFrequency.txt", "w");
+          confFile.print(http.getString());
+          confFile.close();
+          
+          RTCSetAlarm();
+        }
+        
+        http.end();
+        retryCount++;
+      }
+
+      IPAddress ap(192, 168, 4, 1);
+      GetNTPConfigureRTC(ap);
+
+
+      
+    
+    } else {
+      logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+      logfile.println("not connected");
       logfile.close();
     }
 
+
+    WiFi.mode(WIFI_AP);
+    delay(100);
+    WiFi.disconnect();
+    delay(100);
+    WiFi.softAP(localAPssid);
+    IPAddress myIP = WiFi.softAPIP();
     
-    logfile = SPIFFS.open("/wifiNTP.txt", "a");
-    logfile.println("connected");
-    logfile.println(WiFi.localIP());
+    logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
+    logfile.println("AP IP address: " + String(myIP));
     logfile.close();
-
     
+  });
+  
+  server.on("/wifiSlaveRegister", HTTP_GET, []() {    
+    String chipIdStr = server.arg(0);
 
+    File logfile = SPIFFS.open("/logWifiSlaveRegister.txt", "a");
+    logfile.println(nowStr());
+    logfile.println(chipIdStr);
+    logfile.close();
+    
+    uint32_t chipId = chipIdStr.toInt();
+    uint8_t idx;
+    
+    //if (SPIFFS.exists("/slaveList.txt")) {
+    
+    for (idx=0; ((idx<=slaveList.num) && (chipId != slaveList.id[idx])) ; idx++);
+    
+    if (idx > slaveList.num) {
+      File f = SPIFFS.open("/slaveList.txt", "a");
+      f.println(server.arg(0));
+      idx = slaveList.num;
+      slaveList.id[idx] = chipId;
+      slaveList.num++;
+    } else {
+      debug("found : " + String(idx));
+    }
+
+
+    int measurementFrequency = readSetting("measurementFrequency").toInt();
+    
+    
+    server.send(200, "text/plain", String(measurementFrequency));
   });
 
 
+  //http://192.168.4.1/wifiSlavePost?chipId=13442931&weightRaw=123
+  server.on("/wifiSlavePost", HTTP_GET, []() {  
+    String slaveIdStr = server.arg(0);    
+    String weightRawStr = server.arg(1);
+    uint32_t slaveId = slaveIdStr.toInt();
+    uint32_t weightRaw = weightRawStr.toInt();
+    int8_t idx = -1;
 
+    for (idx=0; idx<slaveList.num && slaveList.id[idx] != slaveId; idx++); //lookup
+
+    if (slaveId == slaveList.id[idx]) { //found?
+      slaveList.numReceived++;
+      slaveList.received[idx] = true;
+      slaveList.weightRaw[idx] = weightRaw;
+
+      server.send(200, "text/plain", String(idx));    
+    } else server.send(200, "text/plain", "unknown chip id");    
+
+    
+  });
+
+  
   server.begin();
   debug("HTTP server started");
 }
@@ -400,7 +413,7 @@ void webTimeSet() {
 
   setTime(t);
   RTCSetTime();
-
+  RTCSetAlarm();
 
   server.send(200, "text/html", "timeset ok");
 }

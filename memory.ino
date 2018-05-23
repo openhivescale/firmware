@@ -4,6 +4,8 @@
 
 
 void memoryInit() {
+  
+  
   EEPROM.begin(9);
   ReadEEPROM();
 
@@ -23,10 +25,72 @@ void memoryInit() {
     f.close();
   }
 
+
+  slaveList.num = 0;
+  if (SPIFFS.exists("/slaveList.txt")) {
+    File f = SPIFFS.open("/slaveList.txt", "r");
+    while (f.available()) {
+      slaveList.id[slaveList.num++] = f.parseInt();
+      debug(f.readStringUntil(10));//pass separator
+      
+    }
+
+    for (int i=0;i<slaveList.num;i++) debug("slaveList[" + String(i) + "]=" + String(slaveList.id[i]));
+  }
+
 }
 
+/*void jsonLoad() {
+  if (SPIFFS.exists("/config.json")) {
+    File jsonFile = SPIFFS.open("/config.json", "r");
+    
+    StaticJsonBuffer<512> jsonBuffer;
+    JsonObject& jsonRoot = jsonBuffer.parseObject(jsonFile);
+    jsonFile.close();
+
+    config.wifiSlaveMaster = jsonRoot["wifiSlaveMaster"];
+    config.chipId = jsonRoot["chipId"];
+    config.sendingMode = jsonRoot["sendingMode"];
+    config.wifiHotspotSSID = jsonRoot["wifiHotspotSSID"];
+    config.wifiHotspotPassword = jsonRoot["wifiHotspotPassword"];
+    config.wifiHotspotURL = jsonRoot["wifiHotspotURL"];
+    config.measurementFrequency = jsonRoot["measurementFrequency"];
+    
+
+  } else {
+    config.wifiSlaveMaster = "";
+    config.chipId = String(ESP.getChipId());
+    config.sendingMode = "wifiHotspot";
+    config.wifiHotspotSSID = "";
+    config.wifiHotspotPassword = "";
+    config.wifiHotspotURL = "";
+    config.measurementFrequency = "24";
+
+    jsonSave();
+
+  }
+  
+}*/
 
 
+/*void jsonSave() {
+  SPIFFS.remove("/config.json");
+  File jsonFile = SPIFFS.open("/slaves.json", "w");
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+  
+  jsonRoot["wifiSlaveMaster"] = config.wifiSlaveMaster ;
+  jsonRoot["chipId"] = config.chipId ;
+  jsonRoot["sendingMode"] = config.sendingMode ;
+  jsonRoot["wifiHotspotSSID"] = config.wifiHotspotSSID ;
+  jsonRoot["wifiHotspotPassword"] = config.wifiHotspotPassword ;
+  jsonRoot["wifiHotspotURL"] = config.wifiHotspotURL ;
+  jsonRoot["measurementFrequency"] = config.measurementFrequency ;
+  
+  
+  jsonRoot.printTo(jsonFile);
+  jsonFile.close();
+}*/
 
 void StoreEEPROM() {
   for (int i = 0; i < 4; i++)
@@ -66,6 +130,7 @@ String readSetting(String setting) {
       return t;
   }
   f.close();
+  //return jsonRoot[setting].asString();
 }
 
 
