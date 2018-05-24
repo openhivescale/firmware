@@ -2,7 +2,7 @@
 
 //-obsolete- for file in `ls -A1`; do curl -F "file=@$PWD/$file" 192.168.4.1/edit; done
 // for file in `ls -A1`; do xxd -i $file ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
-
+// git add -u && git commit -m "embedded html/png files, curl upload no more needed" && git push
 
 //#define serialDebug
 
