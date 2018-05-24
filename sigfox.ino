@@ -95,7 +95,7 @@ String sigfoxSend() {
 
     String msgPesee = "0000" + String((unsigned long)weightRaw, HEX);
     String msgTemp = "00" + String((unsigned byte)temp, HEX);
-    String msg = msgPesee.substring(msgPesee.length() - 4, msgPesee.length()) + msgTemp.substring(msgTemp.length() - 2, msgTemp.length());
+    String msg = msgTemp.substring(msgTemp.length() - 2, msgTemp.length()) + "00" + msgPesee.substring(msgPesee.length() - 4, msgPesee.length());
 
     for (int i=0; i<slaveList.num && i<4;i++) {
       if (slaveList.received[i])

@@ -4,6 +4,13 @@
 #include "global.h"
 #include "memory.h"
 
+//// for file in `ls -A1`; do xxd -i $file ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
+#include "webEmbed_edit.htm.h"
+#include "webEmbed_favicon.ico.h"
+#include "webEmbed_graphs.js.h"
+#include "webEmbed_icone57.png.h"
+#include "webEmbed_index.htm.h"
+#include "webEmbed_logo.png.h"
 
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
@@ -18,6 +25,12 @@ ESP8266WebServer server(80);
 //holds the current upload
 File fsUploadFile;
 
+const char contentTypehtml[] PROGMEM = "text/html";
+const char contentTypejs[] PROGMEM = "application/javascript";
+const char contentTypepng[] PROGMEM = "image/png";
+const char contentTypeico[] PROGMEM = "image/x-icon";
+
+  
 void webConfigInit();
 void initWebServer();
 String formatBytes(size_t bytes);

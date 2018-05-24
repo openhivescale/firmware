@@ -1,6 +1,8 @@
 //53, 861, 964, 965, 975, 980, 1016, 1079
 
-//for file in `ls -A1`; do curl -F "file=@$PWD/$file" 192.168.4.1/edit; done
+//-obsolete- for file in `ls -A1`; do curl -F "file=@$PWD/$file" 192.168.4.1/edit; done
+// for file in `ls -A1`; do xxd -i $file ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
+
 
 //#define serialDebug
 
@@ -147,6 +149,7 @@ void setup(void) {
 
     
     if (sendingMode == "wifiHotspot") {
+          // http://www.openhivescale.org/monitor/index.php?r=post-measure%2Findex&weight_raw={weightRaw}&esp_id={chipID}
           HTTPClient http;
           wifiStart();
 

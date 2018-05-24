@@ -27,9 +27,9 @@ void initWebServer() {
   //list directory
   server.on("/list", HTTP_GET, handleFileList);
   //load editor
-  server.on("/edit", HTTP_GET, []() {
+  /*server.on("/edit", HTTP_GET, []() {
     if (!handleFileRead("/edit.htm")) server.send(404, "text/plain", "FileNotFound");
-  });
+  });*/
   //create file
   server.on("/edit", HTTP_PUT, handleFileCreate);
   //delete file
@@ -40,12 +40,54 @@ void initWebServer() {
     server.send(200, "text/plain", "");
   }, handleFileUpload);
 
+
+
+  
+  server.on("/", HTTP_GET, []() {
+    server.send_P(200,contentTypehtml,index_htm,index_htm_len);
+  });
+  
+  server.on("/index.htm", HTTP_GET, []() {
+    server.send_P(200,contentTypehtml,index_htm,index_htm_len);
+  });
+
+  server.on("/edit.htm", HTTP_GET, []() {
+    server.send_P(200,contentTypehtml,edit_htm,edit_htm_len);
+  });
+  
+  server.on("/edit", HTTP_GET, []() {
+    server.send_P(200,contentTypehtml,edit_htm,edit_htm_len);
+  });
+  
+  server.on("/favicon.ico", HTTP_GET, []() {
+    server.send_P(200,contentTypeico,favicon_ico,favicon_ico_len);
+  });
+
+  server.on("/graphs.js", HTTP_GET, []() {
+    server.send_P(200,contentTypejs,graphs_js,graphs_js_len);
+  });
+
+  server.on("/icone57.png", HTTP_GET, []() {
+    server.send_P(200,contentTypepng,icone57_png,icone57_png_len);
+  });
+
+  server.on("/logo.png", HTTP_GET, []() {
+    server.send_P(200,contentTypepng,logo_png,logo_png_len);
+  });
+
+  
+  
   //called when the url is not defined here
   //use it to load content from SPIFFS
   server.onNotFound([]() {
     if (!handleFileRead(server.uri()))
       server.send(404, "text/plain", "FileNotFound");
   });
+
+
+
+
+
 
   //get heap status, analog input value and all GPIO statuses in one json call
   server.on("/all", HTTP_GET, []() {
