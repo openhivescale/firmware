@@ -123,14 +123,31 @@ void SPIFFSFormat() {
 }
 
 String readSetting(String setting) {
-  File f = SPIFFS.open("/" + setting + ".txt", "r");
-  if (f && f.size()) {
-      String t = f.readString();
-      debug("read : " + t);
-      return t;
+  File f;
+  
+  if (!SPIFFS.exists("/" + setting + ".txt")) {
+    String defaultSetting = "";;
+    
+    if (setting == "measurementFrequency") defaultSetting = "1440";
+    if (setting == "sendingMode") defaultSetting = "wifiHotspot";
+    if (setting == "wifiHotspotURL") defaultSetting = "http://www.openhivescale.org/monitor/index.php?r=post-measure%2Findex&weight_raw={weightRaw}&esp_id={chipID}";
+
+    f = SPIFFS.open("/" + setting + ".txt", "w");
+    f.print(defaultSetting);
+    f.close();
+
+    return defaultSetting;
   }
-  f.close();
-  //return jsonRoot[setting].asString();
+  else
+  {
+    f = SPIFFS.open("/" + setting + ".txt", "r");
+    if (f && f.size()) {
+        String t = f.readString();
+        debug("read : " + t);
+        return t;
+    }
+    f.close();
+  }
 }
 
 

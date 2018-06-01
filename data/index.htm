@@ -165,22 +165,34 @@
         var xh = new XMLHttpRequest();
 
         document.getElementById("sigfoxId").innerHTML = "";
-        xh.open("GET", "/sigfoxATCommand?command=AT%24I%3D10", false);
+        xh.open("GET", "/modemATCommand?command=AT%24I%3D10", false);
         xh.send(null);
         document.getElementById("sigfoxId").innerHTML += "AT$I=10 : " + xh.responseText + "<br>";
         
-        xh.open("GET", "/sigfoxATCommand?command=AT%24I%3D11", false);
+        xh.open("GET", "/modemATCommand?command=AT%24I%3D11", false);
         xh.send(null);
         document.getElementById("sigfoxId").innerHTML += "AT$I=11 : " + xh.responseText + "<br>"; 
     }
-    
+
+    function loraGetID() {
+        var xh = new XMLHttpRequest();
+
+        xh.open("GET", "/modemATCommand?command=mac%20get%20deveui", false);
+        xh.send(null);
+        document.getElementById("loraId").innerHTML = "mac get deveui : " + xh.responseText;
+
+    }    
     
     var settings = ["sendingMode",
                     "wifiHotspotSSID",
                     "wifiHotspotPassword",
                     "wifiHotspotURL",
                     "wifiSlaveSSID",
-                    "measurementFrequency"];
+                    "measurementFrequency",
+                    "gsmGprsAPN",
+                    "gsmGprsURL",
+                    "gsmSmsPhoneNum",
+                    "gsmSmsMessage",];
                     
                     
     function saveSettings() {
@@ -308,15 +320,22 @@
     </div>
     
     <div id="loraOption" style="display:none">
-        soon...
+        <input type="button" value="Get deveui" onclick="loraGetID();"/><br>
+        <label id="loraId"/>        
     </div>    
 
     <div id="gsmGprsOption" style="display:none">
-        soon...
+        <label>APN:</label>
+        <input type="text" id="gsmGprsAPN"><br>
+        <label>URL:</label>
+        <input type="text" id="gsmGprsURL"><br>
     </div>    
     
     <div id="gsmSmsOption" style="display:none">
-        soon...
+        <label>Phone number:</label>
+        <input type="text" id="gsmSmsPhoneNum"><br>
+        <label>Message:</label>
+        <input type="text" id="gsmSmsMessage"><br>
     </div>        
     
     <div id="wifiSlaveOption" style="display:none">

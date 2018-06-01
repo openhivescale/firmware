@@ -193,17 +193,26 @@ void initWebServer() {
     GsmHttpSend();
   });
 
-  server.on("/sigfoxATCommand", HTTP_GET, []() {
+  server.on("/testSMS", HTTP_GET, []() {
+    GsmSmsSend();
+    server.send(200, "text/plain", "OK");    
+  });
+  
+  server.on("/testLora", HTTP_GET, []() {
+    server.send(200, "text/plain", "OK");
+    loraSend();
+  });
+  server.on("/modemATCommand", HTTP_GET, []() {
     String ATCommand = server.arg(0);
 
-    debug("sigfoxATCommand : ", true);
+    debug("modemATCommand : ", true);
     debug(ATCommand, true);
 
 
-    File logfile = SPIFFS.open("/sigfoxlogmanual.txt", "a");
+    File logfile = SPIFFS.open("/modemlogmanual.txt", "a");
 
-    sigfoxSendCommand(ATCommand, logfile);
-    String ATAnswer = sigfoxGetAnswer(1000, logfile);
+    modemSendCommand(ATCommand, logfile);
+    String ATAnswer = modemGetAnswer(1000, logfile);
 
     logfile.close();
     debug(" >> ", true);
@@ -212,12 +221,6 @@ void initWebServer() {
     server.send(200, "text/plain", ATAnswer);
   });
 
-
-
-  server.on("/testGSM", HTTP_GET, []() {
-    server.send(200, "text/plain", "OK");
-    GsmHttpSend();
-  });
 
 
   server.on("/wifiScan", HTTP_GET, []() {

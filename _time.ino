@@ -102,17 +102,9 @@ void RTCConfigureTimer() {
   //Wire.write(0b00000010); //TAQ : 1Hz
 
   int wakeUpPeriod ;
-
-  if (SPIFFS.exists("/measurementFrequency.txt")) {
-    int measurementFrequency = readSetting("measurementFrequency").toInt();
-    wakeUpPeriod = 1440 / measurementFrequency;
-    File logfile = SPIFFS.open("/RTCConfigureTimer.txt", "a");
-    logfile.println(wakeUpPeriod);
-    logfile.close();
-  } else {
-    wakeUpPeriod = 1;
-  }
-  
+  int measurementFrequency = readSetting("measurementFrequency").toInt();
+  wakeUpPeriod = 1440 / measurementFrequency;
+ 
   
   Wire.write(wakeUpPeriod); //T_A
   //Wire.write(30); //T_A

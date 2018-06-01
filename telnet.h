@@ -2,7 +2,7 @@
 #define __telnet__
 
 #include "global.h"
-#include "sigfox.h"
+#include "modem.h"
 
 
 WiFiServer telnetServer(23);

@@ -20,5 +20,6 @@
 #include <ArduinoHttpClient.h>
 
 void GsmHttpSend();
+void GsmSmsSend();
 
 #endif

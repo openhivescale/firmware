@@ -16,7 +16,7 @@
 #include "webConfig.h"
 
 #include "gsm.h"
-#include "sigfox.h"
+#include "modem.h"
 #include "wifi.h"
 
 
@@ -59,17 +59,29 @@ void setup(void) {
 
 
   memoryInit();
+
+  String sendingMode = "";
+  debug("serial open " + String(SPIFFS.exists("/sendingMode.txt")));
+  if (SPIFFS.exists("/sendingMode.txt")) {
+    sendingMode = readSetting("sendingMode");    
+    debug(sendingMode);
+    //Hardware serial is connected to modem daughter board
+    if (sendingMode == "lora") {
+      debug("open serial at 57600");  
+      pinMode(1,OUTPUT);
+      digitalWrite(1,LOW);
+      delay(10);
+      modemSerial.begin(57600);
+      modemSerial.println((char)0x55);
+    }
     
-  //Hardware serial is connected to modem daughter board
-  modemSerial.begin(9600);
+    if (sendingMode == "sigfox" || sendingMode == "gsmGprs" || sendingMode == "gsmSms") {
+      debug("open serial at 9600");
+      modemSerial.begin(9600);    
+    }
+
+  }
   
-  /*pinMode(1,OUTPUT);
-  digitalWrite(1,LOW);
-  delay(10);
-  modemSerial.begin(57600);
-  modemSerial.println((char)0x55);*/
-  
-  //modemSerial.begin(74880);
 
   timeInit();
 
@@ -103,7 +115,7 @@ void setup(void) {
     //debug(String(millis()));
 
 
-    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947)
+    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947 || ESP.getChipId() == 15060469)
       weightRaw = millis();
     else
       weightRaw = rechercheEquilibre();
@@ -118,13 +130,14 @@ void setup(void) {
     ReadEEPROM();
     //weightRaw = millis();
 
-    String sendingMode = readSetting("sendingMode");
+    
 
     bootlog.println("sendingMode : " + String(sendingMode));
     
 
     
-    if (sendingMode == "sigfox") {
+    
+    if (sendingMode == "sigfox" || sendingMode == "lora" || sendingMode == "gsmGprs" || sendingMode == "gsmSms") {
       unsigned long timeOutStart = millis();
 
       if (slaveList.num > 0) {
@@ -142,9 +155,28 @@ void setup(void) {
           
       }
 
-      bootlog.println("sigfox send");
+
+      if (sendingMode == "sigfox") {
+        bootlog.println("sigfox send");
+        String sigfoxResult = sigfoxSend();
+      }
+
+
+      if (sendingMode == "lora") {
+        bootlog.println("lora send");
+        String sigfoxResult = loraSend();
+      }
       
-      String sigfoxResult = sigfoxSend();
+      if (sendingMode == "gsmGprs") {
+        bootlog.println("gprs send");
+        GsmHttpSend();
+      }
+      
+      if (sendingMode == "gsmSms") {
+        bootlog.println("sms send");
+        GsmSmsSend();
+      }
+      
     }
 
     
