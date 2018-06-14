@@ -189,8 +189,8 @@ void initWebServer() {
   });
 
   server.on("/testGSM", HTTP_GET, []() {
-    server.send(200, "text/plain", "OK");
     GsmHttpSend();
+    server.send(200, "text/plain", "OK");
   });
 
   server.on("/testSMS", HTTP_GET, []() {

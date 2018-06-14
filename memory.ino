@@ -131,6 +131,7 @@ String readSetting(String setting) {
     if (setting == "measurementFrequency") defaultSetting = "1440";
     if (setting == "sendingMode") defaultSetting = "wifiHotspot";
     if (setting == "wifiHotspotURL") defaultSetting = "http://www.openhivescale.org/monitor/index.php?r=post-measure%2Findex&weight_raw={weightRaw}&esp_id={chipID}";
+    if (setting == "gsmGprsURL") defaultSetting = "http://www.openhivescale.org/monitor/index.php?r=post-measure%2Findex&weight_raw={weightRaw}&esp_id={chipID}";    
 
     f = SPIFFS.open("/" + setting + ".txt", "w");
     f.print(defaultSetting);

@@ -28,10 +28,7 @@ const char compile_date[] = "Compile time : " __DATE__ " " __TIME__;
 //const char* host = "openhivescale";
 
 
-
 void setup(void) {
-  //wakeUpPeriod = 1;
-  
   #ifdef serialDebug
     delay(2000);
     Serial.begin(9600);
@@ -99,10 +96,11 @@ void setup(void) {
 
 
   File bootlog = SPIFFS.open("/bootlog.txt", "a");
+  bootlog.println("");
   bootlog.println("boot...");
   bootlog.println(nowStr());
   bootlog.println("wakeUpByRTCAlarm : " + String(wakeUpByRTCAlarm));
-  
+ 
 
 
   if (wakeUpByRTCAlarm) {
@@ -115,7 +113,7 @@ void setup(void) {
     //debug(String(millis()));
 
 
-    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947 || ESP.getChipId() == 15060469)
+    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947 || ESP.getChipId() == 15060469 || ESP.getChipId() == 12778880)
       weightRaw = millis();
     else
       weightRaw = rechercheEquilibre();
@@ -131,9 +129,7 @@ void setup(void) {
     //weightRaw = millis();
 
     
-
     bootlog.println("sendingMode : " + String(sendingMode));
-    
 
     
     
@@ -169,6 +165,7 @@ void setup(void) {
       
       if (sendingMode == "gsmGprs") {
         bootlog.println("gprs send");
+        bootlog.println("heap : " + String(ESP.getFreeHeap()));
         GsmHttpSend();
       }
       
@@ -260,27 +257,11 @@ void setup(void) {
     }
     
     
-
-    /*GsmHttpSend();
-
-
-    debug("Switch off....  " + nowStr());
-    ReadEEPROM();
-
-    File logfile = SPIFFS.open("/pesee_automatique.txt", "a");
-    logfile.println(debugText + "\r\n\r\n");
-    logfile.close();
-    delay(500);*/
-
-
-
-    
-
     delay(500);
+    
     RTCSetAlarm();
 
     bootlog.println("switch off " + nowStr());
-
     bootlog.close();
     
     RTCClearAlarmInterrupt(); // => switch OFF
