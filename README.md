@@ -6,6 +6,7 @@ Follow these instructions (arduino 1.8.2+git version):
 https://github.com/esp8266/Arduino#using-git-version
 
 Add libraries : 
+Time (Michael Margolis)
 ArduinoHttpClient
 TinyGsm
 
