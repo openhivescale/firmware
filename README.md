@@ -12,9 +12,9 @@ This commit of board extension (originally downloaded on 5/5/2018)
 https://github.com/esp8266/Arduino/archive/bd87970aaec8c10ab6fb47e088360bcc9db83be3.zip
 
 Add libraries : 
-  Time (Michael Margolis) (tested with 1.5.0)
-  ArduinoHttpClient (tested with 0.3.1)
-  TinyGsm (tested with 0.3.5)
+*Time (Michael Margolis) (tested with 1.5.0)
+*ArduinoHttpClient (tested with 0.3.1)
+*TinyGsm (tested with 0.3.5)
 
 
 Choose Generic ESP8266 module, and !!!VERY IMPORTANT!!! flash size 4M (3M SPIFFS) !!!
