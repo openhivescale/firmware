@@ -13,8 +13,11 @@ https://github.com/esp8266/Arduino/archive/bd87970aaec8c10ab6fb47e088360bcc9db83
 
 Add libraries : 
 Time (Michael Margolis) (tested with 1.5.0)
+
 ArduinoHttpClient (tested with 0.3.1)
+
 TinyGsm (tested with 0.3.5)
+
 
 Choose Generic ESP8266 module, and !!!VERY IMPORTANT!!! flash size 4M (3M SPIFFS) !!!
 (if you miss that, you'll brick the OTA updater, and you'll need UART adapter)
