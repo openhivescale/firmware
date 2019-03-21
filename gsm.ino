@@ -6,19 +6,23 @@ void GsmHttpSend() {
   logfile.println("gsmhttpsend");
   
   // URL, path & port (for example: arduino.cc)
-  const char server[] = "www.pierrebeck.fr";
-  String resource = "/dumbpost.php?text=" + String(ESP.getChipId()) + "_" + String(weightRaw);
-  const int port = 80; // port 80 is the default for HTTP
+  //const char server[] = "www.pierrebeck.fr";
+  //String resource = "/dumbpost.php?text=" + String(ESP.getChipId()) + "_" + String(weightRaw);
+  //const int port = 80; // port 80 is the default for HTTP
 
   
   //String apn = 
   char apn[100];
+  
   readSetting("gsmGprsAPN").toCharArray(apn,100);
-  String URL = readSetting("gsmGprsURL");
+  String server = readSetting("gsmGprsHost");
+  int port = readSetting("gsmGprsPort").toInt();
+  String resource = readSetting("gsmGprsURL");
+  
  
  
-  URL.replace("{chipID}",String(ESP.getChipId()));
-  URL.replace("{weightRaw}",String(weightRaw));
+  resource.replace("{chipID}",String(ESP.getChipId()));
+  resource.replace("{weightRaw}",String(weightRaw));
 
   // Your GPRS credentials
   // Leave empty, if missing user or pass

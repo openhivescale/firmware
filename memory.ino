@@ -23,6 +23,9 @@ void memoryInit() {
     File f = SPIFFS.open("/chipId.txt", "w");
     f.print(String(ESP.getChipId()));
     f.close();
+
+    ESP.eraseConfig();
+    //ESP.restart();
   }
 
 
@@ -126,8 +129,8 @@ String readSetting(String setting) {
   File f;
   
   if (!SPIFFS.exists("/" + setting + ".txt")) {
-    String defaultSetting = "";;
-    
+    String defaultSetting = "";
+        
     if (setting == "measurementFrequency") defaultSetting = "1440";
     if (setting == "sendingMode") defaultSetting = "wifiHotspot";
     if (setting == "wifiHotspotURL") defaultSetting = "http://www.openhivescale.org/monitor/index.php?r=post-measure%2Findex&weight_raw={weightRaw}&esp_id={chipID}";
@@ -142,9 +145,15 @@ String readSetting(String setting) {
   else
   {
     f = SPIFFS.open("/" + setting + ".txt", "r");
-    if (f && f.size()) {
-        String t = f.readString();
-        debug("read : " + t);
+    f.setTimeout(1);
+    if (f) {
+        String t;
+        if (f.size()) {
+          t = f.readString();
+        } else {
+          t = "";  
+        }
+       
         return t;
     }
     f.close();

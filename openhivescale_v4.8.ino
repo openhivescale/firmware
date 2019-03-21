@@ -4,6 +4,14 @@
 // for file in `ls -A1`; do xxd -i $file ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
 // git add -u && git commit -m "embedded html/png files, curl upload no more needed" && git push
 
+///home/pbk/Téléchargements/arduino-1.8.2/hardware/esp8266com/esp8266/tools/esptool/esptool -vv -cd ck -cb 230400 -cp /dev/ttyUSB0 -ca 0x00000 -cf ~/Documents/Arduino/openhivescale_v4.8/openhivescale_v4.8.ino.bin
+
+
+//erase flash and wifi settings
+///home/pbk/Téléchargements/arduino-1.8.2/hardware/esp8266com/esp8266/tools/esptool/esptool -vv -cd ck -cb 115200 -cp /dev/ttyUSB0 -ca 0x0 -cz 0x400000 -ca 0x00000 -cf /tmp/arduino_build_811978/openhivescale_v4.8.ino.bin
+
+
+
 //#define serialDebug
 
 #include "global.h"
@@ -25,6 +33,8 @@
 
 
 const char compile_date[] = "Compile time : " __DATE__ " " __TIME__;
+const char firmVer[] = "1.00";
+
 //const char* host = "openhivescale";
 
 
@@ -89,7 +99,8 @@ void setup(void) {
     
   debug("hello " + nowStr());
   debug(compile_date);
-
+  debug(firmVer);
+  
   #ifdef serialDebug
     Serial.println("hello " + nowStr());
   #endif
@@ -113,7 +124,7 @@ void setup(void) {
     //debug(String(millis()));
 
 
-    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947 || ESP.getChipId() == 15060469 || ESP.getChipId() == 12778880)
+    if (ESP.getChipId() == 13442931 || ESP.getChipId() == 13441947 || ESP.getChipId() == 15060469 || ESP.getChipId() == 12778880 || ESP.getChipId() == 12777014)
       weightRaw = millis();
     else
       weightRaw = rechercheEquilibre();

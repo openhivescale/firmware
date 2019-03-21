@@ -174,6 +174,19 @@
         document.getElementById("sigfoxId").innerHTML += "AT$I=11 : " + xh.responseText + "<br>"; 
     }
 
+    
+    function sigfoxTestNetwork() {
+        var xh = new XMLHttpRequest();
+
+        
+        document.getElementById("sigfoxTestResult").innerHTML = "Wait 30s for reply...";
+        xh.open("GET", "/modemATCommand?command=AT%24SF%3DFF,1", false);
+        xh.send(null);
+        document.getElementById("sigfoxTestResult").innerHTML += "AT$SF=FF,1 : " + xh.responseText + "<br>";
+    }
+    
+    
+    
     function loraGetID() {
         var xh = new XMLHttpRequest();
 
@@ -188,8 +201,12 @@
                     "wifiHotspotPassword",
                     "wifiHotspotURL",
                     "wifiSlaveSSID",
+                    "loraAppKey",
+                    "loraAppEui",
                     "measurementFrequency",
                     "gsmGprsAPN",
+                    "gsmGprsHost",
+                    "gsmGprsPort",
                     "gsmGprsURL",
                     "gsmSmsPhoneNum",
                     "gsmSmsMessage",];
@@ -214,7 +231,24 @@
       
     function loadSettings() {
         var xh = new XMLHttpRequest();
-       
+        /*xh.open("GET", "/readSettings", false);
+        xh.send(null); 
+        var val = xh.responseText;
+            
+            
+        var res = JSON.parse(xh.responseText);
+            
+                
+            
+        for (var prop in res) {
+            setting = res[prop];
+            //alert(setting);
+            
+            var obj = document.getElementById(prop);
+            obj.value = setting
+        }*/
+            
+
                     
         for (var i=0; i < settings.length; i++) {
             var setting = settings[i];
@@ -231,8 +265,6 @@
                 opt.value = val;
                 obj.appendChild(opt);
             } 
-            
-            
         }
         
     }
@@ -284,7 +316,7 @@
     Scale identifier : <span id="chipId"></span></h2>
   
     <br><a href="/update">firmware update</a>
-    <br><a href="/edit">file editor</a>
+    <br><a href="/files">log files</a>
     <br><a href="/debug">debug information</a>
     
   </div>
@@ -316,17 +348,30 @@
     
     <div id="sigfoxOption" style="display:none">
         <input type="button" value="Get ID/PAK" onclick="sigfoxGetID();"/><br>
-        <label id="sigfoxId"/>
+        <label id="sigfoxId"/><br>
+        
+        <input type="button" value="Test network coverage" onclick="sigfoxTestNetwork();"/><br>
+        <label id="sigfoxTestResult"/><br>
+        
     </div>
     
     <div id="loraOption" style="display:none">
-        <input type="button" value="Get deveui" onclick="loraGetID();"/><br>
-        <label id="loraId"/>        
+        <input type="button" value="Get deveui" onclick="loraGetID();"/>
+        <label id="loraId"/><br>
+        
+        <label>AppKey:</label>
+        <input type="text" id="loraAppKey"><br>
+        <label>AppEui:</label>
+        <input type="text" id="loraAppEui"><br>
     </div>    
 
     <div id="gsmGprsOption" style="display:none">
         <label>APN:</label>
         <input type="text" id="gsmGprsAPN"><br>
+        <label>Host:</label>
+        <input type="text" id="gsmGprsHost"><br>
+        <label>Port:</label>
+        <input type="text" id="gsmGprsPort"><br>
         <label>URL:</label>
         <input type="text" id="gsmGprsURL"><br>
     </div>    

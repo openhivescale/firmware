@@ -11,6 +11,7 @@
 #include "webEmbed_icone57.png.h"
 #include "webEmbed_index.htm.h"
 #include "webEmbed_logo.png.h"
+#include "webEmbed_ace.js.h"
 
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>

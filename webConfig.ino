@@ -75,7 +75,9 @@ void initWebServer() {
     server.send_P(200,contentTypepng,logo_png,logo_png_len);
   });
 
-  
+  /*server.on("/ace.js", HTTP_GET, []() {
+    server.send_P(200,contentTypejs,ace_js,ace_js_len);
+  });*/  
   
   //called when the url is not defined here
   //use it to load content from SPIFFS
@@ -127,6 +129,49 @@ void initWebServer() {
   });
 
 
+
+  //get heap status, analog input value and all GPIO statuses in one json call
+  server.on("/readSettings", HTTP_GET, []() {
+    String json = "{";
+    json += "\"sendingMode\":\"" + readSetting("sendingMode") + "\"";
+    json += ",\"wifiHotspotSSID\":\"" + readSetting("wifiHotspotSSID") + "\"";
+    json += ",\"wifiHotspotPassword\":\"" + readSetting("wifiHotspotPassword") + "\"";
+    json += ",\"wifiHotspotURL\":\"" + readSetting("wifiHotspotURL") + "\"";
+    json += ",\"loraAppKey\":\"" + readSetting("loraAppKey") + "\"";
+    json += ",\"loraAppEui\":\"" + readSetting("loraAppEui") + "\"";
+    json += ",\"gsmGprsAPN\":\"" + readSetting("gsmGprsAPN") + "\"";
+    json += ",\"gsmGprsHost\":\"" + readSetting("gsmGprsHost") + "\"";
+    json += ",\"gsmGprsPort\":\"" + readSetting("gsmGprsPort") + "\"";
+    json += ",\"gsmGprsURL\":\"" + readSetting("gsmGprsURL") + "\"";
+    json += ",\"gsmSmsPhoneNum\":\"" + readSetting("gsmSmsPhoneNum") + "\"";
+    json += ",\"gsmSmsMessage\":\"" + readSetting("gsmSmsMessage") + "\"";
+    json += ",\"wifiSlaveSSID\":\"" + readSetting("wifiSlaveSSID") + "\"";
+    json += "}";
+    
+    server.send(200, "text/json", json);
+    json = String();
+  });
+
+
+
+
+  //get heap status, analog input value and all GPIO statuses in one json call
+  server.on("/files", HTTP_GET, []() {
+    Dir dir = SPIFFS.openDir("/");
+ 
+    String output = "<html>";
+    while (dir.next()) {
+      File entry = dir.openFile("r");
+      output += "<a href=\"" + String(entry.name()).substring(1) + "\">" + String(entry.name()).substring(1) + "</a><br>\n";
+      entry.close();
+    }
+    output += "</html>";
+    server.send(200, "text/html", output);
+  });
+
+
+
+  
   server.on("/debug", HTTP_GET, []() {
     server.send(200, "text/json", debugText );
   });
@@ -312,14 +357,14 @@ void initWebServer() {
       logfile.close();
   
 
-      const char* remote_host = "192.168.4.1";
+      /*const char* remote_host = "192.168.4.1";
       debug("pinging .... " + String(remote_host));
     
       if(Ping.ping(remote_host)) {
         debug("Success!!");
       } else {
         debug("Error :(");
-      }
+      }*/
 
   
       HTTPClient http;
@@ -514,6 +559,7 @@ bool handleFileRead(String path) {
     if (SPIFFS.exists(pathWithGz))
       path += ".gz";
     File file = SPIFFS.open(path, "r");
+    file.setTimeout(1);
     size_t sent = server.streamFile(file, contentType);
     file.close();
     return true;
