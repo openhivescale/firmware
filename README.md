@@ -2,14 +2,11 @@
 mainboard firmware (Arduino/esp8266)
 
 To compile firmware :
-Follow these instructions (git version chapter):
-https://github.com/esp8266/Arduino#using-git-version
+Follow these instructions (Boards Manager chapter):
+https://github.com/esp8266/Arduino#installing-with-boards-manager
 
-28/01/2019 : I can't compile with most recent version of arduino, and/or last version of esp8266 board extension.
-Here is a working set :
-* Arduino 1.8.2 (1.8.8 doesn't work)
-* This commit of board extension (originally downloaded on 5/5/2018)
-https://github.com/esp8266/Arduino/archive/bd87970aaec8c10ab6fb47e088360bcc9db83be3.zip
+27/05/2019 : Compiled with Arduino 1.8.9 and esp8266 2.5.2
+
 
 Add libraries : 
 * Time (Michael Margolis) (tested with 1.5.0)
