@@ -81,7 +81,11 @@
         var xh = new XMLHttpRequest();
         xh.open("GET", "/chipId.txt", false);
         xh.send(null);      
-      document.getElementById("chipId").innerHTML = xh.responseText;
+        document.getElementById("chipId").innerHTML = xh.responseText;
+
+      xh.open("GET", "/firmVer", false);
+      xh.send(null);      
+      document.getElementById("firmVer").innerHTML = xh.responseText;
       
       loadSettings();  
 
@@ -192,9 +196,24 @@
 
         xh.open("GET", "/modemATCommand?command=mac%20get%20deveui", false);
         xh.send(null);
-        document.getElementById("loraId").innerHTML = "mac get deveui : " + xh.responseText;
+        document.getElementById("loraResult").innerHTML = "mac get deveui " + xh.responseText;
 
     }    
+
+    function loraJoin() {
+        var xh = new XMLHttpRequest();
+
+        xh.onreadystatechange = function(){
+        if (xh.readyState == 4){
+          if(xh.status == 200) {
+            document.getElementById("loraResult").innerHTML = "mac get deveui " + xh.responseText;
+          };
+        }
+      };
+      
+      xh.open("GET", "/loraJoin", true);
+      xh.send(null);
+    }
     
     var settings = ["sendingMode",
                     "wifiHotspotSSID",
@@ -313,12 +332,13 @@
   <div class="block">
     <img src="logo.png" /><br>
   
-    Scale identifier : <span id="chipId"></span></h2>
+    Scale identifier : <span id="chipId"></span></h2><br>
+    Firmware version : <span id="firmVer"></span></h2><br>
   
-    <br><a href="/update">firmware update</a>
-    <br><a href="/files">log files</a>
-    <br><a href="/debug">debug information</a>
-    
+    <a href="/update">firmware update</a><br>
+    <a href="/files">log files</a><br>
+    <a href="/debug">debug information</a><br>
+    <a href="/edit">embedded file editor</a><br>
   </div>
 
   <div class="block">
@@ -356,13 +376,16 @@
     </div>
     
     <div id="loraOption" style="display:none">
-        <input type="button" value="Get deveui" onclick="loraGetID();"/>
-        <label id="loraId"/><br>
-        
-        <label>AppKey:</label>
-        <input type="text" id="loraAppKey"><br>
+        <input type="button" value="Get deveui" onclick="loraGetID();"/><br>
+        <input type="button" value="Join" onclick="loraJoin();"/><br>
         <label>AppEui:</label>
         <input type="text" id="loraAppEui"><br>
+        <label>AppKey:</label>
+        <input type="text" id="loraAppKey"><br>
+        
+        <label id="loraResult">lora result</label><br>
+        
+
     </div>    
 
     <div id="gsmGprsOption" style="display:none">

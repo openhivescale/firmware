@@ -382,7 +382,7 @@ void ntpServerProcess() {
 
     File logfile = SPIFFS.open("/ntp.txt", "a");
     logfile.print("NTP packet received...");
-    logfile.println(String(Remote));
+    logfile.println(Remote.toString());
     logfile.close();
 
     packetBuffer[0] = 0b00100100;   // LI, Version, Mode
@@ -500,4 +500,3 @@ String nowStr() {
 
   return ret;
 }
-

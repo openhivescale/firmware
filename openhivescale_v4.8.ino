@@ -33,7 +33,7 @@
 
 
 const char compile_date[] = "Compile time : " __DATE__ " " __TIME__;
-const char firmVer[] = "1.00";
+const char firmVer[] = "1.02";
 
 //const char* host = "openhivescale";
 

@@ -44,40 +44,49 @@ void initWebServer() {
 
   
   server.on("/", HTTP_GET, []() {
-    server.send_P(200,contentTypehtml,index_htm,index_htm_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypehtml,gz_index_htm_gz,gz_index_htm_gz_len);
   });
   
   server.on("/index.htm", HTTP_GET, []() {
-    server.send_P(200,contentTypehtml,index_htm,index_htm_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypehtml,gz_index_htm_gz,gz_index_htm_gz_len);
   });
 
   server.on("/edit.htm", HTTP_GET, []() {
-    server.send_P(200,contentTypehtml,edit_htm,edit_htm_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypehtml,gz_edit_htm_gz,gz_edit_htm_gz_len);
   });
   
   server.on("/edit", HTTP_GET, []() {
-    server.send_P(200,contentTypehtml,edit_htm,edit_htm_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypehtml,gz_edit_htm_gz,gz_edit_htm_gz_len);
   });
   
   server.on("/favicon.ico", HTTP_GET, []() {
-    server.send_P(200,contentTypeico,favicon_ico,favicon_ico_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypeico,gz_favicon_ico_gz,gz_favicon_ico_gz_len);
   });
 
   server.on("/graphs.js", HTTP_GET, []() {
-    server.send_P(200,contentTypejs,graphs_js,graphs_js_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypejs,gz_graphs_js_gz,gz_graphs_js_gz_len);
   });
 
   server.on("/icone57.png", HTTP_GET, []() {
-    server.send_P(200,contentTypepng,icone57_png,icone57_png_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypepng,gz_icone57_png_gz,gz_icone57_png_gz_len);
   });
 
   server.on("/logo.png", HTTP_GET, []() {
-    server.send_P(200,contentTypepng,logo_png,logo_png_len);
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypepng,gz_logo_png_gz,gz_logo_png_gz_len);
   });
 
-  /*server.on("/ace.js", HTTP_GET, []() {
-    server.send_P(200,contentTypejs,ace_js,ace_js_len);
-  });*/  
+  server.on("/ace.js", HTTP_GET, []() {
+    server.sendHeader("Content-Encoding", "gzip");
+    server.send_P(200,contentTypejs,gz_ace_js_gz,gz_ace_js_gz_len);
+  });  
   
   //called when the url is not defined here
   //use it to load content from SPIFFS
@@ -108,6 +117,7 @@ void initWebServer() {
     json += ",\"motorCheck\":" + String(motorCheck);
     json += ",\"nowStr\":\"" + nowStr() + "\"";
     json += ",\"chipId\":\"" + String(ESP.getChipId()) + "\"";
+    json += ",\"firmVer\":\"" + String(firmVer) + "\"";
     json += ",\"scanComplete\":\"" + String(WiFi.scanComplete()) + "\"";
     json += "}";
     server.send(200, "text/json", json);
@@ -129,6 +139,10 @@ void initWebServer() {
   });
 
 
+  server.on("/firmVer", HTTP_GET, []() {
+    server.send(200, "text/html", firmVer);
+  });
+  
 
   //get heap status, analog input value and all GPIO statuses in one json call
   server.on("/readSettings", HTTP_GET, []() {
@@ -247,6 +261,13 @@ void initWebServer() {
     server.send(200, "text/plain", "OK");
     loraSend();
   });
+
+  server.on("/loraJoin", HTTP_GET, []() {
+    String result = loraJoin();
+    server.send(200, "text/plain", result);
+  });
+
+  
   server.on("/modemATCommand", HTTP_GET, []() {
     String ATCommand = server.arg(0);
 
@@ -422,7 +443,7 @@ void initWebServer() {
     IPAddress myIP = WiFi.softAPIP();
     
     logfile = SPIFFS.open("/logWifiSlaveConfig.txt", "a");
-    logfile.println("AP IP address: " + String(myIP));
+    logfile.println("AP IP address: " + myIP.toString());
     logfile.close();
     
   });
@@ -663,4 +684,3 @@ void delayWithWebHandle(int d) {
   }
   return;
 }
-

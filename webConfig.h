@@ -4,7 +4,8 @@
 #include "global.h"
 #include "memory.h"
 
-//// for file in `ls -A1`; do xxd -i $file ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
+//// cd data 
+//// for file in `ls -A1 -I gz -I .directory`; do gzip -c $file > gz/$file.gz ; xxd -i gz/$file.gz ../webEmbed_$file.h; sed -i -- 's/unsigned char/const char/g; s/\[\] =/\[\] PROGMEM =/g' ../webEmbed_$file.h; done
 #include "webEmbed_edit.htm.h"
 #include "webEmbed_favicon.ico.h"
 #include "webEmbed_graphs.js.h"

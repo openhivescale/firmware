@@ -142,6 +142,61 @@ String sigfoxSend() {
 
 
 
+String loraJoin() {
+  String result = "";
+
+
+  RTCReadReg();
+  File logfile = SPIFFS.open("/loralogjoin.txt", "a");
+
+  logfile.println("");
+  logfile.println(nowStr());
+
+  debug("Send lora.....");
+  while (modemSerial.available()) modemSerial.read();
+  String ret;
+
+  for (int i = 0; i < 5 && !ret.startsWith("RN2483"); i++) {
+    modemSendCommand("sys get ver", logfile);
+    ret = modemGetAnswer(1000, logfile);
+  }
+
+  if (ret.startsWith("RN2483")) {
+
+
+    modemSendCommand("mac set appeui " + readSetting("loraAppEui"), logfile);
+    result = modemGetAnswer(500, logfile);
+    modemSendCommand("mac set appkey " + readSetting("loraAppKey"), logfile);
+    result = modemGetAnswer(500, logfile);
+    modemSendCommand("mac join otaa", logfile);
+    result = modemGetAnswer(1000, logfile);
+    result = modemGetAnswer(20000, logfile);
+
+    if (result == "accepted") {
+      File lorajoinedfile = SPIFFS.open("/lorajoined.txt", "a");
+      lorajoinedfile.print(nowStr());
+      lorajoinedfile.println(" ");
+      lorajoinedfile.println(result);
+      lorajoinedfile.close();
+    }
+  
+    modemGetAnswer(100, logfile);
+    modemGetAnswer(100, logfile);
+    modemGetAnswer(100, logfile);
+    modemGetAnswer(100, logfile);      
+    
+
+
+  }
+
+  logfile.close();
+  
+  return result;
+  
+}
+
+
+
 
 String loraSend() {
   String result = "";
